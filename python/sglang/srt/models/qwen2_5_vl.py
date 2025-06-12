@@ -596,6 +596,10 @@ class Qwen2_5_VLForConditionalGeneration(nn.Module):
                 # Skip loading extra bias for GPTQ models.
                 if name.endswith(".bias") and name not in params_dict:
                     continue
+                if name.startswith("model.visual."):
+                    name = name.lstrip("model.")
+                if name.startswith("model.language_model."):
+                    name = name.replace("model.language_model.", "model.")
                 param = params_dict[name]
                 weight_loader = param.weight_loader
                 weight_loader(param, loaded_weight, shard_id)
@@ -604,11 +608,15 @@ class Qwen2_5_VLForConditionalGeneration(nn.Module):
                 if "visual" in name:
                     # adapt to VisionAttention
                     name = name.replace(r"attn.qkv.", r"attn.qkv_proj.")
-
+                    
                 try:
                     # Skip loading extra bias for GPTQ models.
                     if name.endswith(".bias") and name not in params_dict:
                         continue
+                    if name.startswith("model.visual."):
+                        name = name.lstrip("model.")
+                    if name.startswith("model.language_model."):
+                        name = name.replace("model.language_model.", "model.")
                     param = params_dict[name]
                 except KeyError:
                     print(params_dict.keys())
